@@ -12,9 +12,10 @@ project_id = os.getenv("GCP_PROJECT_ID")
 topic_id = os.getenv("PUBSUB_TOPIC_ID")
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(project_id, topic_id)
+database_name = os.getenv("FIRESTORE_DATABASE_NAME")
 collection_id = os.getenv("FIRESTORE_COLLECTION_ID")
 
-db = firestore.Client()
+db = firestore.Client(database=database_name)
 
 
 def generate_weather_data():
