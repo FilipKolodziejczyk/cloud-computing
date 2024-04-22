@@ -6,6 +6,8 @@ The goal of this project is to create a system in GCP, with strong emphasis of u
 
 ![Architecture](/architecture.png)
 
+All of the components are virtually infinite scalable, with the exception of the BigTable, when set to proper configuration. Therefore, it is capable to handle huge amounts of data and requests. The system is also meant to be highly available, once again, if properly configured.
+
 ## SLA, SLO, SLI
 
 | Service | SLO (% availability) | SLA |
@@ -27,3 +29,30 @@ The goal of this project is to create a system in GCP, with strong emphasis of u
 | Cloud Monitoring | 99.95 | &check; |
 
 To estimate SLO of whole infrastructure, we could use probability theory (product of sequential components). However, it still would not capture the whole picture, as it is only infrastructure, without the application itself. To estimate that, we would have to define SLIs and measure them with proper tools.
+
+## Terraform setup
+
+Initial setup:
+
+1. Install Google Cloud SDK: [manual](https://cloud.google.com/sdk/docs/install-sdk)
+2. Install Terraform: [manual](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+3. Authenticate with Google Cloud SDK: `gcloud auth login`
+4. Create a new project: `gcloud projects create <project-id>`
+5. Set the project: `gcloud config set project <project-id>`
+6. Create a 'terraform/terraform.tfvars' file so it will match the 'terraform/variables.tf' file. Example:
+
+```bash
+project_id = "<project-id>"
+region = "<region>"
+...
+```
+
+8. Run `terraform init` to initialize the Terraform configuration.
+
+## Terraform usage
+
+1. Run `terraform validate` to validate the configuration.
+2. Run `terraform fmt` to format the configuration.
+3. Run `terraform plan` to see the changes that will be applied.
+4. Run `terraform apply` to apply the changes.
+5. Run `terraform destroy` to destroy the infrastructure.

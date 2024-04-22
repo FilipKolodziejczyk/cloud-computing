@@ -1,0 +1,31 @@
+{
+  "name": "Real-time workflow",
+  "description": "Workflow consuming weather data from Pub/Sub and writing to BigQuery",
+  "streaming": true,
+  "parameters": [
+    {
+      "name": "project_id",
+      "label": "GCP Project ID",
+      "type": "string",
+      "helpText": "The GCP project to use for Pub/Sub and BigQuery."
+    },
+    {
+      "name": "pubsub_subscription",
+      "label": "Input Pub/Sub subscription",
+      "type": "string",
+      "helpText": "The Pub/Sub topic to read weather data from in format projects/<project_id>/subscriptions/<subscription_id>."
+    },
+    {
+      "name": "bigtable_instance_id",
+      "label": "BigQuery instance ID",
+      "type": "string",
+      "helpText": "The BigQuery instance ID to write weather data to."
+    },
+    {
+      "name": "bigtable_table_id",
+      "label": "BigQuery table ID",
+      "type": "string",
+      "helpText": "The BigQuery table ID to write weather data to."
+    }
+  ]
+}
