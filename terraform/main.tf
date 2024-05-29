@@ -34,7 +34,8 @@ variable "google_apis" {
     "bigtable.googleapis.com",
     "looker.googleapis.com",
     "dataflow.googleapis.com",
-    "identitytoolkit.googleapis.com"
+    "identitytoolkit.googleapis.com",
+    "eventarc.googleapis.com"
   ]
 }
 

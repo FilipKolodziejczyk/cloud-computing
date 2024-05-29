@@ -1,7 +1,21 @@
+terraform {
+  required_providers {
+    time = {
+      source = "hashicorp/time"
+    }
+  }
+}
+
 resource "google_service_account" "cloud_function_sa" {
   project      = var.gcp_project_id
   account_id   = "cloud-function-sa"
   display_name = "Cloud Function Service Account"
+}
+
+resource "google_project_iam_member" "cloud_function_pubsub_publisher" {
+  project = var.gcp_project_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.cloud_function_sa.email}"
 }
 
 resource "google_storage_bucket" "cloud_function_source_bucket" {
@@ -10,6 +24,11 @@ resource "google_storage_bucket" "cloud_function_source_bucket" {
   location                    = var.gcp_region
   uniform_bucket_level_access = true
 }
+
+locals {
+  current_date = provider::time::rfc3339_parse(timestamp()).unix
+}
+
 
 resource "null_resource" "zip_sources" {
   for_each = toset(var.data_providers)
@@ -23,7 +42,7 @@ resource "null_resource" "zip_sources" {
       mkdir ${path.root}/artifacts && \ 
       cp -r ${path.root}/${var.cloud_function_source_dir}/${each.value}-func/* ${path.root}/artifacts/ && \
       cd ${path.root}/artifacts/ && \
-      zip -r ${each.value}.zip .
+      zip -r "${each.value}-${local.current_date}.zip" .
     EOH
   }
 }
@@ -35,11 +54,25 @@ resource "google_storage_bucket_object" "cloud_function_source" {
 
   name   = "${each.value}.zip"
   bucket = google_storage_bucket.cloud_function_source_bucket.name
-  source = "${path.root}/artifacts/${each.value}.zip"
+  source = "${path.root}/artifacts/${each.value}-${local.current_date}.zip"
 }
+
+resource "google_pubsub_topic" "data_gathering_function_trigger" {
+  for_each = toset(var.data_providers)
+
+  project = var.gcp_project_id
+  name    = "${lower(each.value)}-data-gathering-function-trigger"
+}
+
 
 resource "google_cloudfunctions2_function" "data_gathering_function" {
   for_each = toset(var.data_providers)
+
+  lifecycle {
+    replace_triggered_by = [
+      google_storage_bucket_object.cloud_function_source[each.key]
+    ]
+  }
 
   project     = var.gcp_project_id
   name        = "${lower(each.value)}-data-gathering-function"
@@ -57,6 +90,7 @@ resource "google_cloudfunctions2_function" "data_gathering_function" {
     }
   }
 
+
   service_config {
     available_memory      = "256Mi"
     min_instance_count    = 1
@@ -64,12 +98,17 @@ resource "google_cloudfunctions2_function" "data_gathering_function" {
     timeout_seconds       = 120
     service_account_email = google_service_account.cloud_function_sa.email
     environment_variables = {
-      GCP_PROJECT_ID          = var.gcp_project_id
-      PUBSUB_TOPIC_ID         = var.pubsub_real_time_topic[each.key]
-      PUBSUB_BATCH_TOPIC_ID   = var.pubsub_batch_topic[each.key]
-      FIRESTORE_DATABASE_NAME = google_firestore_database.data_gathering_firestore.name
-      FIRESTORE_COLLECTION_ID = each.value
+      GCP_PROJECT_ID        = var.gcp_project_id
+      PUBSUB_TOPIC_ID       = var.pubsub_real_time_topic[each.key]
+      PUBSUB_BATCH_TOPIC_ID = var.pubsub_batch_topic[each.key]
     }
+  }
+
+  event_trigger {
+    trigger_region = var.gcp_region
+    event_type     = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic   = google_pubsub_topic.data_gathering_function_trigger[each.key].id
+    retry_policy   = "RETRY_POLICY_RETRY"
   }
 }
 
@@ -99,16 +138,12 @@ resource "google_cloud_scheduler_job" "data_gathering_scheduler" {
   project     = var.gcp_project_id
   name        = "${each.value}-data-gathering-scheduler"
   description = "Data gathering scheduler for ${each.value}"
-  schedule    = "*/5 * * * *"
+  schedule    = "*/30 * * * *"
   time_zone   = "UTC"
   region      = var.gcp_region
 
-  http_target {
-    uri         = google_cloudfunctions2_function.data_gathering_function[each.key].service_config[0].uri
-    http_method = "POST"
-    oidc_token {
-      audience              = "${google_cloudfunctions2_function.data_gathering_function[each.key].service_config[0].uri}/"
-      service_account_email = google_service_account.cloud_function_sa.email
-    }
+  pubsub_target {
+    topic_name = google_pubsub_topic.data_gathering_function_trigger[each.key].id
+    data       = base64encode("Invoke ${each.value} data gathering function")
   }
 }

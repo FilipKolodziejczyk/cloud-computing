@@ -38,26 +38,26 @@ resource "google_service_account_key" "looker" {
   service_account_id = google_service_account.looker.id
 }
 
-resource "google_identity_platform_oauth_idp_config" "oauth_idp_config" {
-  name          = "oidc.oauth-idp-config"
-  display_name  = "OIDC IDP Config"
-  client_id     = "client-id"
-  issuer        = "issuer"
-  enabled       = true
-  client_secret = "secret"
-}
+#resource "google_identity_platform_oauth_idp_config" "oauth_idp_config" {
+#  name          = "oidc.oauth-idp-config"
+#  display_name  = "OIDC IDP Config"
+#  client_id     = "client-id"
+#  issuer        = "issuer"
+#  enabled       = true
+#  client_secret = "secret"
+#}
 
-resource "google_looker_instance" "looker-instance" {
-  project          = var.gcp_project_id
-  name             = "looker-instance"
-  platform_edition = "LOOKER_CORE_STANDARD_ANNUAL"
-  region           = var.gcp_region
-
-
-  oauth_config {
-    client_id     = google_identity_platform_oauth_idp_config.oauth_idp_config.client_id
-    client_secret = google_identity_platform_oauth_idp_config.oauth_idp_config.client_secret
-  }
-}
+#resource "google_looker_instance" "looker-instance" {
+#  project          = var.gcp_project_id
+#  name             = "looker-instance"
+#  platform_edition = "LOOKER_CORE_STANDARD_ANNUAL"
+#  region           = var.gcp_region
+#
+#
+#  oauth_config {
+#    client_id     = google_identity_platform_oauth_idp_config.oauth_idp_config.client_id
+#    client_secret = google_identity_platform_oauth_idp_config.oauth_idp_config.client_secret
+#  }
+#}
 
 
