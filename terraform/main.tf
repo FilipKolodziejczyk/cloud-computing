@@ -75,7 +75,6 @@ module "real_time" {
   gcp_region     = var.gcp_region
   gcp_zone       = var.gcp_zone
   data_providers = var.data_providers
-  workflow_repo = google_artifact_registry_repository.workflow_repo
 }
 
 module "batch" {
