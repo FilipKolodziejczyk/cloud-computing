@@ -15,12 +15,25 @@ publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path(project_id, topic_id)
 
 
-
-
-
 def generate_weather_data():
-    location = {"Milano": (45.4685, 9.1824), "Warszawa": (52.2297, 21.0122), "Vienna": (48.2090, 16.3728)}
-    results = {}
+    location = {
+        "Milan": (45.4685, 9.1824),
+        "Warsaw": (52.2297, 21.0122),
+        "Paris": (48.8575, 2.3514)
+    }
+    results = {
+        'location': [],
+        'timestamp': [],
+        'time': [],
+        'temperature': [],
+        'humidity': [],
+        'apparent_temperature': [],
+        'rain': [],
+        'weather': [],
+        'surface_pressure': [],
+        'cloud_cover': [],
+        'wind_speed': []
+    }
 
     for city, pos in location.items():
         params = {
@@ -29,41 +42,20 @@ def generate_weather_data():
             'appid': '0ab6b3dd1c466a7045c579e3182f855b',
             'units': 'metric'
         }
-        forecast_data = requests.get('http://api.openweathermap.org/data/2.5/forecast', params=params).json()
         current_data = requests.get('https://api.openweathermap.org/data/2.5/weather', params=params).json()
-        name = forecast_data['city']['name']
-        forecast_data = forecast_data['list']
 
-        forecast = {key: [] for key in
-                    ['Time', 'Temperature', 'Apparent temperature', 'Humidity', 'Precipitation', 'Rain', 'Weather',
-                     'Surface pressure', 'Cloud cover', 'Wind speed']}
+        results['location'].append(city)
+        results['timestamp'] = datetime.now(pytz.utc).isoformat()
+        results['time'].append(datetime.fromtimestamp(current_data['dt'], pytz.utc).isoformat())
+        results['temperature'].append(current_data['main']['temp'])
+        results['humidity'].append(current_data['main']['humidity'])
+        results['apparent_temperature'].append(current_data['main']['feels_like'])
+        results['rain'].append(current_data.get('rain', {}).get('1h', 0))
+        results['weather'].append(current_data['weather'][0]['description'].capitalize())
+        results['surface_pressure'].append(current_data['main']['pressure'])
+        results['cloud_cover'].append(current_data['clouds']['all'])
+        results['wind_speed'].append(current_data['wind']['speed'])
 
-        for item in forecast_data:
-            forecast['Time'].append(datetime.fromtimestamp(item['dt']).strftime('%d %b, %H:%M'))
-            forecast['Temperature'].append(item['main']['temp'])
-            forecast['Apparent temperature'].append(item['main']['feels_like'])
-            forecast['Humidity'].append(item['main']['humidity'])
-            forecast['Precipitation'].append(item['pop'] * 100)
-            forecast['Rain'].append(item.get('rain', {}).get('3h', 0))
-            forecast['Weather'].append(item['weather'][0]['description'].capitalize())
-            forecast['Surface pressure'].append(item['main']['grnd_level'])
-            forecast['Cloud cover'].append(item['clouds']['all'])
-            forecast['Wind speed'].append(item['wind']['speed'])
-
-        current = {
-            'Time': datetime.fromtimestamp(current_data['dt']).strftime('%d %b, %H:%M'),
-            'Temperature': current_data['main']['temp'],
-            'Apparent temperature': current_data['main']['feels_like'],
-            'Humidity': current_data['main']['humidity'],
-            'Rain': current_data.get('rain', {}).get('1h', 0),
-            'Weather': current_data['weather'][0]['description'].capitalize(),
-            'Surface pressure': current_data['main']['pressure'],
-            'Cloud cover': current_data['clouds']['all'],
-            'Wind speed': current_data['wind']['speed'],
-        }
-        results[name] = (current, forecast)
-
-    # return name, forecast, current
     return results
 
 
@@ -80,9 +72,6 @@ def main():
         data = generate_weather_data()
         message_id = publish_to_pubsub(data)
         print(f"Published data to Pub/Sub with message ID: {message_id}")
-
-
-
 
 
 @functions_framework.cloud_event
