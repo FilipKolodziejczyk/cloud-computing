@@ -70,12 +70,12 @@ module "data_gathering" {
 
 module "real_time" {
   depends_on = [google_project_service.google_apis]
-
   source         = "./modules/real_time"
   gcp_project_id = var.gcp_project_id
   gcp_region     = var.gcp_region
   gcp_zone       = var.gcp_zone
   data_providers = var.data_providers
+  workflow_repo = google_artifact_registry_repository.workflow_repo
 }
 
 module "batch" {

@@ -17,3 +17,8 @@ variable "data_providers" {
   description = "The data providers to deploy resources for"
   type        = list(string)
 }
+
+variable "workflow_repo" {
+  description = "Artifacts repository containing workflow docker image"
+  type        = string
+}

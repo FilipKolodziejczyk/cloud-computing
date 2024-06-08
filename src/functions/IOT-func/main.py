@@ -50,7 +50,3 @@ def cloud_function_entry_point(cloud_event):
     print(f"Cloud Event Trigger Data: {trigger_data}")
     main()
     return "Data generated and processed successfully."
-
-# Uncomment the following line if testing locally
-# if __name__ == '__main__':
-#     main()
