@@ -19,6 +19,12 @@ topic_path = publisher.topic_path(project_id, topic_id)
 
 
 def generate_weather_data():
+    location = {
+        "Milan": (45.4685, 9.1824),
+        "Warsaw": (52.2297, 21.0122),
+        "Paris": (48.8575, 2.3514)
+    }
+
     params = {
         'lat': 45.4685,
         'lon': 9.1824,

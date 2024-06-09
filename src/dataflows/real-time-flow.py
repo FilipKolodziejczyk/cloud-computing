@@ -36,7 +36,7 @@ class ParseJson(beam.DoFn):
 class CreateDirectRow(beam.DoFn):
     def process(self, element):
         try:
-            key = f"{element['location']}_{element['timestamp']}"
+            key = f"{element['name']}_{element['timestamp']}"
             direct_row = DirectRow(row_key=key)
             column_family = "base"
             for qualifier, value in element.items():
@@ -65,7 +65,7 @@ def run(argv=None, save_main_session=True):
     parser.add_argument("--bigtable_table_id", help="Bigtable table ID.")
     args, pipeline_args = parser.parse_known_args(argv)
 
-    pipeline_options = PipelineOptions(pipeline_args)
+    pipeline_options = PipelineOptions(pipeline_args, streaming=True)
     pipeline_options.view_as(GoogleCloudOptions).project = args.project_id
     pipeline_options.view_as(SetupOptions).save_main_session = save_main_session
 
