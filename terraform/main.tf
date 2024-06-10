@@ -35,8 +35,8 @@ variable "google_apis" {
     "looker.googleapis.com",
     "dataflow.googleapis.com",
     "identitytoolkit.googleapis.com",
-    "eventarc.googleapis.com"
-#    "appengine.googleapis.com"
+    "eventarc.googleapis.com",
+    "appengine.googleapis.com"
   ]
 }
 
@@ -87,16 +87,3 @@ module "batch" {
   gcp_zone       = var.gcp_zone
   data_providers = var.data_providers
 }
-
-#resource "google_app_engine_application" "ts-appengine-app" {
-#  project       = var.gcp_project_id
-#  location_id      = var.gcp_region
-#}
-#
-#resource "google_app_engine_application_url_dispatch_rules" "ts-appengine-app-dispatch-rules" {
-#  dispatch_rules {
-#    domain = "*"
-#    path = "/*"
-#    service = "default"
-#  }
-#}
