@@ -36,6 +36,7 @@ variable "google_apis" {
     "dataflow.googleapis.com",
     "identitytoolkit.googleapis.com",
     "eventarc.googleapis.com"
+#    "appengine.googleapis.com"
   ]
 }
 
@@ -69,7 +70,7 @@ module "data_gathering" {
 }
 
 module "real_time" {
-  depends_on = [google_project_service.google_apis]
+  depends_on     = [google_project_service.google_apis]
   source         = "./modules/real_time"
   gcp_project_id = var.gcp_project_id
   gcp_region     = var.gcp_region
@@ -86,3 +87,16 @@ module "batch" {
   gcp_zone       = var.gcp_zone
   data_providers = var.data_providers
 }
+
+#resource "google_app_engine_application" "ts-appengine-app" {
+#  project       = var.gcp_project_id
+#  location_id      = var.gcp_region
+#}
+#
+#resource "google_app_engine_application_url_dispatch_rules" "ts-appengine-app-dispatch-rules" {
+#  dispatch_rules {
+#    domain = "*"
+#    path = "/*"
+#    service = "default"
+#  }
+#}

@@ -29,8 +29,22 @@ locals {
   current_date = provider::time::rfc3339_parse(timestamp()).unix
 }
 
+resource "null_resource" "bin_artifacts" {
+  for_each = toset(var.data_providers)
+
+  triggers = {
+    always_run = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = "rm -rf ${path.root}/artifacts"
+  }
+}
+
+
 
 resource "null_resource" "zip_sources" {
+  depends_on = [null_resource.bin_artifacts]
   for_each = toset(var.data_providers)
 
   triggers = {
@@ -39,9 +53,9 @@ resource "null_resource" "zip_sources" {
 
   provisioner "local-exec" {
     command = <<EOH
-      mkdir ${path.root}/artifacts && \ 
-      cp -r ${path.root}/${var.cloud_function_source_dir}/${each.value}-func/* ${path.root}/artifacts/ && \
-      cd ${path.root}/artifacts/ && \
+      mkdir -p ${path.root}/artifacts/${each.value} && \
+      cp -r ${path.root}/${var.cloud_function_source_dir}/${each.value}-func/* ${path.root}/artifacts/${each.value} && \
+      cd ${path.root}/artifacts/${each.value} && \
       zip -r "${each.value}-${local.current_date}.zip" .
     EOH
   }
@@ -54,7 +68,7 @@ resource "google_storage_bucket_object" "cloud_function_source" {
 
   name   = "${each.value}.zip"
   bucket = google_storage_bucket.cloud_function_source_bucket.name
-  source = "${path.root}/artifacts/${each.value}-${local.current_date}.zip"
+  source = "${path.root}/artifacts/${each.value}/${each.value}-${local.current_date}.zip"
 }
 
 resource "google_pubsub_topic" "data_gathering_function_trigger" {

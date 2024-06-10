@@ -24,7 +24,7 @@ def generate_weather_data():
     return {
         "temperature": temperature,
         "humidity": humidity,
-        "location": location,
+        "location": location+"iot",
         "timestamp": timestamp,
     }
 

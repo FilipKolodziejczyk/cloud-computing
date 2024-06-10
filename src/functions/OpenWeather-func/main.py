@@ -17,17 +17,17 @@ topic_path = publisher.topic_path(project_id, topic_id)
 
 def generate_weather_data(city, location):
     results = {
-        'location': [],
-        'timestamp': [],
-        'time': [],
-        'temperature': [],
-        'humidity': [],
-        'apparent_temperature': [],
-        'rain': [],
-        'weather': [],
-        'surface_pressure': [],
-        'cloud_cover': [],
-        'wind_speed': []
+        'location': None,
+        'timestamp': None,
+        'time': None,
+        'temperature': None,
+        'humidity': None,
+        'apparent_temperature': None,
+        'rain': None,
+        'weather': None,
+        'surface_pressure': None,
+        'cloud_cover': None,
+        'wind_speed': None
     }
     params = {
         'lat': location[0],
@@ -37,17 +37,17 @@ def generate_weather_data(city, location):
     }
     current_data = requests.get('https://api.openweathermap.org/data/2.5/weather', params=params).json()
 
-    results['location'].append(city)
+    results['location'] = city
     results['timestamp'] = datetime.now(pytz.utc).isoformat()
-    results['time'].append(datetime.fromtimestamp(current_data['dt'], pytz.utc).isoformat())
-    results['temperature'].append(current_data['main']['temp'])
-    results['humidity'].append(current_data['main']['humidity'])
-    results['apparent_temperature'].append(current_data['main']['feels_like'])
-    results['rain'].append(current_data.get('rain', {}).get('1h', 0))
-    results['weather'].append(current_data['weather'][0]['description'].capitalize())
-    results['surface_pressure'].append(current_data['main']['pressure'])
-    results['cloud_cover'].append(current_data['clouds']['all'])
-    results['wind_speed'].append(current_data['wind']['speed'])
+    results['time'] = datetime.fromtimestamp(current_data['dt'], pytz.utc).isoformat()
+    results['temperature'] = current_data['main']['temp']
+    results['humidity'] = current_data['main']['humidity']
+    results['apparent_temperature'] = current_data['main']['feels_like']
+    results['rain'] = current_data.get('rain', {}).get('1h', 0)
+    results['weather'] = current_data['weather'][0]['description'].capitalize()
+    results['surface_pressure'] = current_data['main']['pressure']
+    results['cloud_cover'] = current_data['clouds']['all']
+    results['wind_speed'] = current_data['wind']['speed']
 
     return results
 
@@ -65,8 +65,8 @@ def main():
         "Warsaw": (52.2297, 21.0122),
         "Paris": (48.8575, 2.3514)
     }
-    for city, postion in location:
-        data = generate_weather_data(city, location)
+    for city, postion in location.items():
+        data = generate_weather_data(city, postion)
         message_id = publish_to_pubsub(data)
         print(f"Published data to Pub/Sub with message ID: {message_id}")
 

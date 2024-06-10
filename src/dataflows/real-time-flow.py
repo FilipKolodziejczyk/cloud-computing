@@ -36,7 +36,7 @@ class ParseJson(beam.DoFn):
 class CreateDirectRow(beam.DoFn):
     def process(self, element):
         try:
-            key = f"{element['name']}_{element['timestamp']}"
+            key = f"{element['location']}_{element['timestamp']}"
             direct_row = DirectRow(row_key=key)
             column_family = "base"
             for qualifier, value in element.items():

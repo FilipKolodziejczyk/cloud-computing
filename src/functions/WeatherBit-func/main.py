@@ -18,55 +18,45 @@ topic_path = publisher.topic_path(project_id, topic_id)
 
 
 
-def generate_weather_data():
-    location = {
-        "Milan": (45.4685, 9.1824),
-        "Warsaw": (52.2297, 21.0122),
-        "Paris": (48.8575, 2.3514)
+def generate_weather_data(city, location):
+    results = {
+        'location': None,
+        'timestamp': None,
+        'time': None,
+        'temperature': None,
+        'humidity': None,
+        'apparent_temperature': None,
+        'rain': None,
+        'weather': None,
+        'surface_pressure': None,
+        'cloud_cover': None,
+        'wind_speed': None
     }
 
     params = {
-        'lat': 45.4685,
-        'lon': 9.1824,
+        'lat': location[0],
+        'lon': location[1],
         'key': 'b796f2836a134645b84af9573dbaf150',
         'hours': 120
     }
 
-    forecast_response = requests.get('https://api.weatherbit.io/v2.0/forecast/hourly', params=params).json()
     current_response = requests.get('https://api.weatherbit.io/v2.0/current', params=params).json()
-
-    forecast_data = forecast_response['data']
     current_data = current_response['data'][0]
 
-    forecast = {key: [] for key in
-                ['Time', 'Temperature', 'Apparent temperature', 'Humidity', 'Precipitation', 'Rain', 'Weather',
-                 'Surface pressure', 'Cloud cover', 'Wind speed']}
+    results['location'] = city
+    results['timestamp'] = datetime.now(pytz.utc).isoformat()
+    results['time'] = datetime.strptime(current_data['ob_time'], '%Y-%m-%d %H:%M').strftime('%d %b, %H:%M')
+    results['temperature'] = current_data['temp']
+    results['humidity'] = current_data['rh']
+    results['apparent_temperature'] = current_data['app_temp']
+    results['rain'] = current_data['precip']
+    results['weather'] = current_data['weather']['description']
+    results['surface_pressure'] = current_data['pres']
+    results['cloud_cover'] = current_data['clouds']
+    results['wind_speed'] = current_data['wind_spd']
 
-    for item in forecast_data:
-        forecast['Time'].append(datetime.fromtimestamp(item['ts']).strftime('%d %b, %H:%M'), )
-        forecast['Temperature'].append(item['temp'])
-        forecast['Apparent temperature'].append(item['app_temp'])
-        forecast['Humidity'].append(item['rh'])
-        forecast['Precipitation'].append(item['pop'])
-        forecast['Rain'].append(item['precip'])
-        forecast['Weather'].append(item['weather']['description'])
-        forecast['Surface pressure'].append(item['pres'])
-        forecast['Cloud cover'].append(item['clouds'])
-        forecast['Wind speed'].append(item['wind_spd'])
 
-    current = {
-        'Time': datetime.strptime(current_data['ob_time'], '%Y-%m-%d %H:%M').strftime('%d %b, %H:%M'),
-        'Temperature': current_data['temp'],
-        'Apparent temperature': current_data['app_temp'],
-        'Humidity': current_data['rh'],
-        'Rain': current_data['precip'],
-        'Weather': current_data['weather']['description'],
-        'Surface pressure': current_data['pres'],
-        'Cloud cover': current_data['clouds'],
-        'Wind speed': current_data['wind_spd'],
-    }
-
-    return forecast, current
+    return results
 
 
 def publish_to_pubsub(data):
@@ -77,9 +67,13 @@ def publish_to_pubsub(data):
 
 
 def main():
-    # TODO: Replace with real data
-    for _ in range(5):  # Adjust the range for more or fewer entries
-        data = generate_weather_data()
+    location = {
+        "Milan": (45.4685, 9.1824),
+        "Warsaw": (52.2297, 21.0122),
+        "Paris": (48.8575, 2.3514)
+    }
+    for city, postion in location.items():
+        data = generate_weather_data(city, postion)
         message_id = publish_to_pubsub(data)
         print(f"Published data to Pub/Sub with message ID: {message_id}")
 
