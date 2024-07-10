@@ -1,3 +1,12 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+
+# Vitualenv
+.venv
+
 # Created by https://www.toptal.com/developers/gitignore/api/terraform,visualstudiocode,macos,windows,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=terraform,visualstudiocode,macos,windows,linux
 
@@ -131,3 +140,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/terraform,visualstudiocode,macos,windows,linux
+
+output/
+artifacts/
